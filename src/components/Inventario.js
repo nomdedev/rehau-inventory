@@ -11,6 +11,8 @@ const Inventario = () => {
     const [modalQR, setModalQR] = useState({ abierto: false, codigo: '' });
     const [nuevoMaterial, setNuevoMaterial] = useState({ codigo: '', descripcion: '', stock: '', ubicacion: '' });
     const [nuevoStock, setNuevoStock] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [userRole, setUserRole] = useState("admin"); // Cambiar dinámicamente según el usuario actual
 
     useEffect(() => {
         cargarInventario();
@@ -22,17 +24,31 @@ const Inventario = () => {
     };
 
     const handleAgregar = async () => {
-        await createItemInventario(nuevoMaterial);
-        toast.success('Material agregado con éxito');
-        setModalAgregar(false);
-        cargarInventario();
+        setIsLoading(true);
+        try {
+            await createItemInventario(nuevoMaterial);
+            toast.success('Material agregado con éxito');
+            setModalAgregar(false);
+            cargarInventario();
+        } catch (error) {
+            toast.error('Error al agregar material');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleEditarStock = async () => {
-        await updateStock(modalEditar.id, nuevoStock);
-        toast.success('Stock actualizado con éxito');
-        setModalEditar({ abierto: false, id: null });
-        cargarInventario();
+        setIsLoading(true);
+        try {
+            await updateStock(modalEditar.id, nuevoStock);
+            toast.success('Stock actualizado con éxito');
+            setModalEditar({ abierto: false, id: null });
+            cargarInventario();
+        } catch (error) {
+            toast.error('Error al actualizar stock');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleCopiarCodigo = () => {
@@ -53,7 +69,7 @@ const Inventario = () => {
     return (
         <div>
             <h1>Inventario</h1>
-            <button onClick={() => setModalAgregar(true)}>Agregar Nuevo Perfil</button>
+            <button onClick={() => setModalAgregar(true)} disabled={userRole !== "admin"}>Agregar Nuevo Perfil</button>
             <table>
                 <thead>
                     <tr>
@@ -72,7 +88,7 @@ const Inventario = () => {
                             <td>{material.stock}</td>
                             <td>{material.ubicacion}</td>
                             <td>
-                                <button onClick={() => setModalEditar({ abierto: true, id: material.id })}>
+                                <button onClick={() => setModalEditar({ abierto: true, id: material.id })} disabled={userRole !== "admin"}>
                                     Editar Stock
                                 </button>
                                 <button onClick={() => setModalQR({ abierto: true, codigo: material.codigo })}>
@@ -111,8 +127,8 @@ const Inventario = () => {
                         value={nuevoMaterial.ubicacion}
                         onChange={(e) => setNuevoMaterial({ ...nuevoMaterial, ubicacion: e.target.value })}
                     />
-                    <button onClick={handleAgregar}>Guardar</button>
-                    <button onClick={() => setModalAgregar(false)}>Cancelar</button>
+                    <button onClick={handleAgregar} disabled={isLoading}>Guardar</button>
+                    <button onClick={() => setModalAgregar(false)} disabled={isLoading}>Cancelar</button>
                 </div>
             )}
 
@@ -125,8 +141,8 @@ const Inventario = () => {
                         value={nuevoStock}
                         onChange={(e) => setNuevoStock(e.target.value })}
                     />
-                    <button onClick={handleEditarStock}>Guardar</button>
-                    <button onClick={() => setModalEditar({ abierto: false, id: null })}>Cancelar</button>
+                    <button onClick={handleEditarStock} disabled={isLoading}>Guardar</button>
+                    <button onClick={() => setModalEditar({ abierto: false, id: null })} disabled={isLoading}>Cancelar</button>
                 </div>
             )}
 

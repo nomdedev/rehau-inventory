@@ -1,133 +1,126 @@
-"use client"
-
-import { useState } from "react"
-import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from "@/lib/api/usuarios"
-import { toast } from "@/components/ui/use-toast"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"
-import useSWR from "swr"
+import React, { useState, useEffect } from "react";
+import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from "@/lib/api/usuarios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function UsuariosPage() {
-  const { data: usuarios, mutate } = useSWR("usuarios", getUsuarios)
-  const [mostrarModal, setMostrarModal] = useState(false)
-  const [nombreInput, setNombreInput] = useState("")
-  const [passwordInput, setPasswordInput] = useState("")
-  const [rolSeleccionado, setRolSeleccionado] = useState("")
-  const [usuarioEditando, setUsuarioEditando] = useState(null)
+  const [usuarios, setUsuarios] = useState([]);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState(null);
+  const [formData, setFormData] = useState({ nombre: "", password: "", rol: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [userRole, setUserRole] = useState("admin"); // Cambiar dinámicamente según el usuario actual
 
-  const handleCrearUsuario = async () => {
-    try {
-      await createUsuario({
-        nombre: nombreInput,
-        password: passwordInput,
-        rol: rolSeleccionado,
-      })
-      toast({
-        title: "¡Usuario creado!",
-        description: "El usuario fue creado correctamente.",
-      })
-      mutate()
-      setMostrarModal(false)
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al crear",
-        description: "No se pudo crear el usuario.",
-      })
-    }
-  }
+  useEffect(() => {
+    cargarUsuarios();
+  }, []);
 
-  const handleEliminarUsuario = async (usuarioId) => {
-    try {
-      await deleteUsuario(usuarioId)
-      toast({
-        title: "¡Usuario eliminado!",
-        description: "El usuario fue eliminado correctamente.",
-      })
-      mutate()
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al eliminar",
-        description: "No se pudo eliminar el usuario.",
-      })
-    }
-  }
+  const cargarUsuarios = async () => {
+    const data = await getUsuarios();
+    setUsuarios(data);
+  };
 
-  const handleEditarUsuario = async () => {
+  const handleGuardarUsuario = async () => {
+    setIsLoading(true);
     try {
-      await updateUsuario(usuarioEditando.id, {
-        nombre: nombreInput,
-        password: passwordInput,
-        rol: rolSeleccionado,
-      })
-      toast({
-        title: "¡Usuario actualizado!",
-        description: "El usuario fue actualizado correctamente.",
-      })
-      mutate()
-      setMostrarModal(false)
+      if (usuarioEditando) {
+        await updateUsuario(usuarioEditando.id, formData);
+        toast.success("Usuario actualizado con éxito");
+      } else {
+        await createUsuario(formData);
+        toast.success("Usuario creado con éxito");
+      }
+      setMostrarModal(false);
+      cargarUsuarios();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al actualizar",
-        description: "No se pudo actualizar el usuario.",
-      })
+      toast.error("Error al guardar el usuario");
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
+
+  const handleEliminarUsuario = async (id) => {
+    if (confirm("¿Estás seguro de eliminar este usuario?")) {
+      setIsLoading(true);
+      try {
+        await deleteUsuario(id);
+        toast.success("Usuario eliminado con éxito");
+        cargarUsuarios();
+      } catch (error) {
+        toast.error("Error al eliminar el usuario");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   return (
     <div>
-      <Button onClick={() => setMostrarModal(true)}>Crear Usuario</Button>
-      <ul>
-        {usuarios?.map((usuario) => (
-          <li key={usuario.id}>
-            {usuario.nombre} - {usuario.rol}
-            <Button onClick={() => handleEliminarUsuario(usuario.id)}>Eliminar</Button>
-            <Button
-              onClick={() => {
-                setUsuarioEditando(usuario)
-                setNombreInput(usuario.nombre)
-                setRolSeleccionado(usuario.rol)
-                setMostrarModal(true)
-              }}
-            >
-              Editar
-            </Button>
-          </li>
-        ))}
-      </ul>
-
+      <h1>Gestión de Usuarios</h1>
+      <button onClick={() => setMostrarModal(true)} disabled={userRole !== "admin"}>
+        Agregar Usuario
+      </button>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {usuarios.map((usuario) => (
+            <tr key={usuario.id}>
+              <td>{usuario.nombre}</td>
+              <td>{usuario.rol}</td>
+              <td>
+                <button
+                  onClick={() => {
+                    setUsuarioEditando(usuario);
+                    setMostrarModal(true);
+                  }}
+                  disabled={userRole !== "admin"}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEliminarUsuario(usuario.id)}
+                  disabled={userRole !== "admin" || isLoading}
+                >
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       {mostrarModal && (
-        <Dialog open={mostrarModal} onOpenChange={setMostrarModal}>
-          <DialogContent>
-            <DialogHeader>{usuarioEditando ? "Editar Usuario" : "Crear Usuario"}</DialogHeader>
-            <Input
-              placeholder="Nombre"
-              value={nombreInput}
-              onChange={(e) => setNombreInput(e.target.value)}
-            />
-            <Input
-              placeholder="Contraseña"
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-            />
-            <select
-              value={rolSeleccionado}
-              onChange={(e) => setRolSeleccionado(e.target.value)}
-            >
-              <option value="">Seleccionar rol</option>
-              <option value="admin">Admin</option>
-              <option value="user">Usuario</option>
-            </select>
-            <Button onClick={usuarioEditando ? handleEditarUsuario : handleCrearUsuario}>
-              {usuarioEditando ? "Actualizar" : "Crear"}
-            </Button>
-          </DialogContent>
-        </Dialog>
+        <div className="modal">
+          <h2>{usuarioEditando ? "Editar Usuario" : "Agregar Usuario"}</h2>
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={formData.nombre}
+            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+          <select
+            value={formData.rol}
+            onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
+          >
+            <option value="">Seleccionar Rol</option>
+            <option value="admin">Admin</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <button onClick={handleGuardarUsuario}>Guardar</button>
+          <button onClick={() => setMostrarModal(false)}>Cancelar</button>
+        </div>
       )}
     </div>
-  )
+  );
 }

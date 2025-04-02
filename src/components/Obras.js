@@ -7,6 +7,8 @@ const Obras = () => {
     const [obras, setObras] = useState([]);
     const [modalNuevaObra, setModalNuevaObra] = useState(false);
     const [nuevaObra, setNuevaObra] = useState({ nombre: '', cliente: '', estado: '', fecha: '' });
+    const [isLoading, setIsLoading] = useState(false);
+    const [userRole, setUserRole] = useState("admin"); // Cambiar dinámicamente según el usuario actual
 
     useEffect(() => {
         cargarObras();
@@ -18,16 +20,23 @@ const Obras = () => {
     };
 
     const handleCrearObra = async () => {
-        await createObra(nuevaObra);
-        toast.success('Obra creada con éxito');
-        setModalNuevaObra(false);
-        cargarObras();
+        setIsLoading(true);
+        try {
+            await createObra(nuevaObra);
+            toast.success("Obra creada con éxito");
+            setModalNuevaObra(false);
+            cargarObras();
+        } catch (error) {
+            toast.error("Error al crear obra");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <div>
             <h1>Obras</h1>
-            <button onClick={() => setModalNuevaObra(true)}>Nueva Obra</button>
+            <button onClick={() => setModalNuevaObra(true)} disabled={userRole !== "admin"}>Nueva Obra</button>
             <table>
                 <thead>
                     <tr>
@@ -76,7 +85,7 @@ const Obras = () => {
                         value={nuevaObra.fecha}
                         onChange={(e) => setNuevaObra({ ...nuevaObra, fecha: e.target.value })}
                     />
-                    <button onClick={handleCrearObra}>Guardar</button>
+                    <button onClick={handleCrearObra} disabled={isLoading}>Guardar</button>
                     <button onClick={() => setModalNuevaObra(false)}>Cancelar</button>
                 </div>
             )}

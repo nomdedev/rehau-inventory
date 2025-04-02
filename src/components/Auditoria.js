@@ -7,24 +7,28 @@ const Auditoria = () => {
     const [logs, setLogs] = useState([]);
     const [filtroUsuario, setFiltroUsuario] = useState('');
     const [filtroModulo, setFiltroModulo] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         cargarLogs();
     }, []);
 
     const cargarLogs = async () => {
+        setIsLoading(true);
         try {
             const data = await getLogs();
             setLogs(data);
         } catch (error) {
             toast.error('Error al cargar los logs');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const logsFiltrados = logs.filter(
         (log) =>
-            (!filtroUsuario || log.usuario.includes(filtroUsuario)) &&
-            (!filtroModulo || log.modulo.includes(filtroModulo))
+            log.usuario.includes(filtroUsuario) &&
+            log.modulo.includes(filtroModulo)
     );
 
     return (
@@ -36,12 +40,14 @@ const Auditoria = () => {
                     placeholder="Filtrar por usuario"
                     value={filtroUsuario}
                     onChange={(e) => setFiltroUsuario(e.target.value)}
+                    disabled={isLoading}
                 />
                 <input
                     type="text"
                     placeholder="Filtrar por módulo"
                     value={filtroModulo}
                     onChange={(e) => setFiltroModulo(e.target.value)}
+                    disabled={isLoading}
                 />
             </div>
             <table>
