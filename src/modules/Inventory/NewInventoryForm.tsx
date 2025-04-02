@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { prisma } from '../../prismaClient';
+import { toast } from 'react-toastify'; // Importar toast para notificaciones.
 
 interface NewInventoryFormProps {
   isOpen: boolean;
@@ -11,26 +12,32 @@ const NewInventoryForm: React.FC<NewInventoryFormProps> = ({ isOpen, onClose }) 
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState<number | ''>('');
   const [price, setPrice] = useState<number | ''>('');
+  const [isLoading, setIsLoading] = useState(false); // Estado de carga.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await prisma.inventario.create({
-        data: {
-          nombre: name,
-          descripcion: description,
-          cantidad: quantity || 0,
-          precio: price || 0,
-        },
+      await createItemInventario({
+        codigo: name,
+        descripcion: description,
+        largo: 0,
+        stock: quantity || 0,
+        stockMinimo: 0,
+        nivel: 'A',
+        ubicacion: 'Almacén',
       });
-      onClose(); // Cerrar el formulario después de guardar.
+      toast.success('Material creado con éxito');
+      onClose(); // Cerrar el formulario.
       setName('');
       setDescription('');
       setQuantity('');
-      setPrice('');
     } catch (error) {
-      console.error('Error al crear el perfil de inventario:', error);
+      toast.error('Error al crear el material');
+      console.error('Error al crear el material:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,7 +87,9 @@ const NewInventoryForm: React.FC<NewInventoryFormProps> = ({ isOpen, onClose }) 
               required
             />
           </div>
-          <button type="submit">Guardar</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Guardando...' : 'Guardar'}
+          </button>
         </form>
       </div>
     </div>

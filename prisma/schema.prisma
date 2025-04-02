@@ -12,6 +12,8 @@ model Usuario {
   id    String @id @default(uuid())
   nombre String
   email String @unique
+  password String
+  rol      String @db.VarChar(20)
 }
 
 model Inventario {
@@ -58,4 +60,101 @@ model Auditoria {
   accion   String   @db.VarChar(100)
   modulo   String   @db.VarChar(50)
   fecha    DateTime @default(now())
+}
+
+<Modal isOpen={mostrarModal} onClose={() => setMostrarModal(false)}>
+  <form onSubmit={guardarUsuario}>
+    <label>
+      Nombre:
+      <input
+        type="text"
+        value={usuarioSeleccionado.nombre}
+        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, nombre: e.target.value })}
+      />
+    </label>
+    <label>
+      Contraseña:
+      <input
+        type="password"
+        value={usuarioSeleccionado.password}
+        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, password: e.target.value })}
+      />
+    </label>
+    <label>
+      Rol:
+      <select
+        value={usuarioSeleccionado.rol}
+        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, rol: e.target.value })}
+      >
+        <option value="usuario">Usuario</option>
+        <option value="admin">Admin</option>
+      </select>
+    </label>
+    <button type="submit">Guardar</button>
+  </form>
+</Modal>
+
+<Button onClick={() => {
+  setUsuarioSeleccionado(usuario)
+  setModoEditar(usuario.id)
+  setMostrarModal(true)
+}}>
+  Editar
+</Button>
+
+<Button onClick={async () => {
+  if (window.confirm("¿Seguro que querés eliminar este usuario?")) {
+    await deleteUsuario(usuario.id)
+    setUsuarios(prev => prev.filter(u => u.id !== usuario.id))
+    toast({ title: "Usuario eliminado" })
+  }
+}}>
+  Eliminar
+</Button>
+
+<Button onClick={async () => {
+  const obraCompleta = await getObra(obra.id)
+  setObraSeleccionada(obraCompleta)
+  setMostrarDetalle(true)
+}}>
+  Ver detalles
+</Button>
+
+<Dialog open={mostrarDetalle} onOpenChange={setMostrarDetalle}>
+  <DialogContent>
+    <h2>{obraSeleccionada?.nombre}</h2>
+    <p>Cliente: {obraSeleccionada?.cliente}</p>
+    <p>Dirección: {obraSeleccionada?.direccion}</p>
+    <p>Estado: {obraSeleccionada?.estado}</p>
+    <p>Fecha: {new Date(obraSeleccionada?.fecha).toLocaleDateString()}</p>
+  </DialogContent>
+</Dialog>
+
+<Button onClick={() => {
+  setItemSeleccionado(item)
+  setMostrarModalStock(true)
+}}>
+  Editar stock
+</Button>
+
+<Modal isOpen={mostrarModalStock} onClose={() => setMostrarModalStock(false)}>
+  <form onSubmit={guardarStock}>
+    <label>
+      Nuevo stock:
+      <input
+        type="number"
+        value={nuevoStock}
+        onChange={(e) => setNuevoStock(Number(e.target.value))}
+      />
+    </label>
+    <button type="submit">Guardar</button>
+  </form>
+</Modal>
+
+const guardarStock = async () => {
+  await updateStock(itemSeleccionado.id, nuevoStock)
+  const data = await getInventario()
+  setInventario(data)
+  toast({ title: "Stock actualizado" })
+  setMostrarModalStock(false)
 }

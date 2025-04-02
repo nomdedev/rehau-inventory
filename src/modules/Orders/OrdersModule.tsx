@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import html2pdf from 'html2pdf.js';
+import { toast } from 'react-toastify'; // Importar toast para notificaciones.
 
 const OrdersModule: React.FC = () => {
   const [orderDetails, setOrderDetails] = useState({
@@ -13,6 +14,8 @@ const OrdersModule: React.FC = () => {
     firma: '/path/to/signature.png',
   });
 
+  const [isLoading, setIsLoading] = useState(false); // Estado de carga.
+
   const handleGeneratePDF = () => {
     const element = document.getElementById('order-pdf');
     if (!element) return;
@@ -25,6 +28,28 @@ const OrdersModule: React.FC = () => {
     };
 
     html2pdf().set(options).from(element).save();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await createOrden({
+        proveedor: 'Proveedor X',
+        proyecto: 'Proyecto Y',
+        estado: 'Pendiente',
+        total: 1000,
+      });
+      toast.success('Orden creada con éxito');
+      onOrderAdded(); // Actualizar la lista de órdenes.
+      onClose(); // Cerrar el formulario.
+    } catch (error) {
+      toast.error('Error al crear la orden');
+      console.error('Error al crear la orden:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,6 +80,9 @@ const OrdersModule: React.FC = () => {
         <img src={orderDetails.firma} alt="Firma" style={{ width: '150px', marginTop: '20px' }} />
       </div>
       <button onClick={handleGeneratePDF}>Generar PDF</button>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Guardando...' : 'Guardar'}
+      </button>
     </div>
   );
 };

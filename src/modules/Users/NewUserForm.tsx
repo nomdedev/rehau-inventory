@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { prisma } from '../../prismaClient';
+import { createUsuario } from '../../api/usuarios'; // Importar la función de la API para crear usuario.
 import { addAuditLog } from '../../utils/auditLog'; // Importar la función de auditoría.
+import { toast } from 'react-toastify'; // Importar toast para notificaciones.
 
 interface NewUserFormProps {
   onUserAdded: () => void;
@@ -10,26 +11,28 @@ const NewUserForm: React.FC<NewUserFormProps> = ({ onUserAdded }) => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Estado de carga.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await prisma.usuario.create({
-        data: {
-          nombre: name,
-          contraseña: password,
-          rol: role,
-        },
+      await createUsuario({
+        nombre: name,
+        password: password,
+        rol: role,
       });
-
-      await addAuditLog('Usuarios', 'crear', `Usuario creado: ${name}`); // Registrar en auditoría.
-      onUserAdded(); // Notificar al componente padre para recargar la lista de usuarios.
+      toast.success('Usuario creado con éxito');
+      onUserAdded(); // Notificar al componente padre.
       setName('');
       setPassword('');
       setRole('');
     } catch (error) {
+      toast.error('Error al crear el usuario');
       console.error('Error al crear el usuario:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,7 +65,9 @@ const NewUserForm: React.FC<NewUserFormProps> = ({ onUserAdded }) => {
           required
         />
       </div>
-      <button type="submit">Crear Usuario</button>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Guardando...' : 'Crear Usuario'}
+      </button>
     </form>
   );
 };

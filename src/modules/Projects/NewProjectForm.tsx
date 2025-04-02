@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { prisma } from '../../prismaClient';
+import { toast } from 'react-toastify'; // Importar toast para notificaciones.
 
 interface NewProjectFormProps {
   isOpen: boolean;
@@ -11,26 +12,35 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ isOpen, onClose, onProj
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Estado de carga.
+
+  const createObra = async (data: any) => {
+    await prisma.obra.create({ data });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await prisma.obra.create({
-        data: {
-          nombre: name,
-          descripcion: description,
-          ubicacion: location,
-        },
+      await createObra({
+        nombre: name,
+        cliente: description,
+        direccion: location,
+        estado: 'Pendiente',
+        fecha: new Date(),
       });
+      toast.success('Proyecto creado con éxito');
       onProjectAdded(); // Actualizar la lista de obras.
       onClose(); // Cerrar el formulario.
-      alert('Obra creada con éxito'); // Mostrar un toast de éxito.
       setName('');
       setDescription('');
       setLocation('');
     } catch (error) {
+      toast.error('Error al crear el proyecto');
       console.error('Error al crear la obra:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,7 +81,9 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ isOpen, onClose, onProj
               required
             />
           </div>
-          <button type="submit">Guardar</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Guardando...' : 'Guardar'}
+          </button>
         </form>
       </div>
     </div>
