@@ -4,34 +4,34 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL") // Asegúrate de que DATABASE_URL esté configurado correctamente en el archivo .env
+  url      = env("DATABASE_URL")
 }
 
 model Usuario {
-  id        Int         @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   nombre    String
-  email     String      @unique
+  email     String     @unique
   password  String
-  rol       String
-  Orden     Orden[]
-  Auditoria Auditoria[]
+  rol       String     // 'admin', 'operador', 'visualizador'
+  ordenes   Orden[]
+  auditoria Auditoria[]
 }
 
 model Inventario {
-  id           Int         @id @default(autoincrement())
-  codigo       String      @unique
+  id           Int          @id @default(autoincrement())
+  codigo       String       @unique
   descripcion  String
   cantidad     Int
-  reservado    Int         @default(0)
+  reservado    Int          @default(0)
   ubicacion    String
-  fechaIngreso DateTime    @default(now())
+  fechaIngreso DateTime     @default(now())
   obraId       Int?
-  obra         Obra?       @relation(fields: [obraId], references: [id])
+  obra         Obra?        @relation(fields: [obraId], references: [id])
   ordenItems   OrdenItem[]
 }
 
 model Obra {
-  id          Int          @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   nombre      String
   cliente     String
   direccion   String
@@ -45,18 +45,18 @@ model Orden {
   id        Int         @id @default(autoincrement())
   fecha     DateTime    @default(now())
   proveedor String
-  estado    String
+  estado    String      // 'Pendiente', 'Completada'
   usuarioId Int
   usuario   Usuario     @relation(fields: [usuarioId], references: [id])
   items     OrdenItem[]
 }
 
 model OrdenItem {
-  id         Int        @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   ordenId    Int
-  orden      Orden      @relation(fields: [ordenId], references: [id])
+  orden      Orden       @relation(fields: [ordenId], references: [id])
   materialId Int
-  material   Inventario @relation(fields: [materialId], references: [id])
+  material   Inventario  @relation(fields: [materialId], references: [id])
   cantidad   Int
 }
 
@@ -69,3 +69,8 @@ model Auditoria {
   descripcion String
   fecha       DateTime @default(now())
 }
+
+// Luego de guardar este archivo, ejecutá:
+// npx prisma format
+// npx prisma generate
+// npx prisma db push
