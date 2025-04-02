@@ -3,158 +3,69 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver" // Cambia a sqlserver
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
-// Modelos de ejemplo
 model Usuario {
-  id    String @id @default(uuid())
-  nombre String
-  email String @unique
-  password String
-  rol      String @db.VarChar(20)
+  id        Int         @id @default(autoincrement())
+  nombre    String
+  email     String      @unique
+  password  String
+  rol       String
+  auditoria Auditoria[]
+  ordenes   Orden[]
 }
 
 model Inventario {
-  id           Int     @id @default(autoincrement())
-  codigo       String  @unique @db.VarChar(50)
-  descripcion  String  @db.VarChar(255)
-  largo        Float   @db.Float // Esto es válido para SQL Server
-  stock        Int
-  stockMinimo  Int
-  nivel        String  @db.VarChar(1)
-  ubicacion    String  @db.VarChar(100)
-}
-
-model Orden {
-  id        Int      @id @default(autoincrement())
-  fecha     DateTime @default(now())
-  proveedor String   @db.VarChar(100)
-  proyecto  String   @db.VarChar(100)
-  estado    String   @db.VarChar(20)
-  total     Float    @db.Float // Esto es válido para SQL Server
+  id           Int         @id @default(autoincrement())
+  codigo       String      @unique
+  descripcion  String
+  cantidad     Int
+  reservado    Int         @default(0)
+  ubicacion    String
+  fechaIngreso DateTime    @default(now())
+  obraId       Int?
+  obra         Obra?       @relation(fields: [obraId], references: [id])
+  ordenItems   OrdenItem[]
 }
 
 model Obra {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(100)
-  cliente   String   @db.VarChar(100)
-  direccion String   @db.VarChar(150)
-  estado    String   @db.VarChar(20)
-  fecha     DateTime
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  cliente     String
+  direccion   String
+  estado      String
+  fechaInicio DateTime
+  fechaFin    DateTime?
+  inventario  Inventario[]
 }
 
-model Movimiento {
-  id         Int      @id @default(autoincrement())
-  tipo       String   @db.VarChar(20)
-  cantidad   Int
+model Orden {
+  id        Int         @id @default(autoincrement())
+  fecha     DateTime    @default(now())
+  proveedor String
+  estado    String
+  usuarioId Int
+  usuario   Usuario     @relation(fields: [usuarioId], references: [id])
+  items     OrdenItem[]
+}
+
+model OrdenItem {
+  id         Int        @id @default(autoincrement())
+  ordenId    Int
+  orden      Orden      @relation(fields: [ordenId], references: [id])
   materialId Int
-  proyectoId Int
-  fecha      DateTime @default(now())
+  material   Inventario @relation(fields: [materialId], references: [id])
+  cantidad   Int
 }
 
 model Auditoria {
-  id       Int      @id @default(autoincrement())
-  usuario  String   @db.VarChar(100)
-  accion   String   @db.VarChar(100)
-  modulo   String   @db.VarChar(50)
-  fecha    DateTime @default(now())
-}
-
-<Modal isOpen={mostrarModal} onClose={() => setMostrarModal(false)}>
-  <form onSubmit={guardarUsuario}>
-    <label>
-      Nombre:
-      <input
-        type="text"
-        value={usuarioSeleccionado.nombre}
-        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, nombre: e.target.value })}
-      />
-    </label>
-    <label>
-      Contraseña:
-      <input
-        type="password"
-        value={usuarioSeleccionado.password}
-        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, password: e.target.value })}
-      />
-    </label>
-    <label>
-      Rol:
-      <select
-        value={usuarioSeleccionado.rol}
-        onChange={(e) => setUsuarioSeleccionado({ ...usuarioSeleccionado, rol: e.target.value })}
-      >
-        <option value="usuario">Usuario</option>
-        <option value="admin">Admin</option>
-      </select>
-    </label>
-    <button type="submit">Guardar</button>
-  </form>
-</Modal>
-
-<Button onClick={() => {
-  setUsuarioSeleccionado(usuario)
-  setModoEditar(usuario.id)
-  setMostrarModal(true)
-}}>
-  Editar
-</Button>
-
-<Button onClick={async () => {
-  if (window.confirm("¿Seguro que querés eliminar este usuario?")) {
-    await deleteUsuario(usuario.id)
-    setUsuarios(prev => prev.filter(u => u.id !== usuario.id))
-    toast({ title: "Usuario eliminado" })
-  }
-}}>
-  Eliminar
-</Button>
-
-<Button onClick={async () => {
-  const obraCompleta = await getObra(obra.id)
-  setObraSeleccionada(obraCompleta)
-  setMostrarDetalle(true)
-}}>
-  Ver detalles
-</Button>
-
-<Dialog open={mostrarDetalle} onOpenChange={setMostrarDetalle}>
-  <DialogContent>
-    <h2>{obraSeleccionada?.nombre}</h2>
-    <p>Cliente: {obraSeleccionada?.cliente}</p>
-    <p>Dirección: {obraSeleccionada?.direccion}</p>
-    <p>Estado: {obraSeleccionada?.estado}</p>
-    <p>Fecha: {new Date(obraSeleccionada?.fecha).toLocaleDateString()}</p>
-  </DialogContent>
-</Dialog>
-
-<Button onClick={() => {
-  setItemSeleccionado(item)
-  setMostrarModalStock(true)
-}}>
-  Editar stock
-</Button>
-
-<Modal isOpen={mostrarModalStock} onClose={() => setMostrarModalStock(false)}>
-  <form onSubmit={guardarStock}>
-    <label>
-      Nuevo stock:
-      <input
-        type="number"
-        value={nuevoStock}
-        onChange={(e) => setNuevoStock(Number(e.target.value))}
-      />
-    </label>
-    <button type="submit">Guardar</button>
-  </form>
-</Modal>
-
-const guardarStock = async () => {
-  await updateStock(itemSeleccionado.id, nuevoStock)
-  const data = await getInventario()
-  setInventario(data)
-  toast({ title: "Stock actualizado" })
-  setMostrarModalStock(false)
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  accion      String
+  modulo      String
+  descripcion String
+  fecha       DateTime @default(now())
 }
