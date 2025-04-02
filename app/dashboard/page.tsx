@@ -1,135 +1,147 @@
 "use client"
 
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { Package, ClipboardList, Building } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { inventory, orders, projects } from "@/lib/mock-data"
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import { createUsuario, updateUsuario, deleteUsuario, getUsuarios } from "@/lib/api/usuarios"
-import { createItemInventario, updateStock, createObra, createOrden } from "@/lib/api"
+import React, { useState, useEffect } from 'react';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Package, ClipboardList, Building } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { inventory, orders, projects } from "@/lib/mock-data";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+import { createUsuario, updateUsuario, deleteUsuario, getUsuarios } from "@/lib/api/usuarios";
+import { createItemInventario, updateStock, createObra, createOrden } from "@/lib/api";
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+export default function DashboardPage() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const sessionData = await getServerSession(authOptions);
+      if (!sessionData) {
+        redirect("/login");
+      } else {
+        setSession(sessionData);
+      }
+    };
+    fetchSession();
+  }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [formData, setFormData] = useState({ username: "", password: "", role: "viewer" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalType, setModalType] = useState(""); // "inventario", "obra", "orden"
 
   if (!session) {
-    redirect("/login")
+    return null; // Renderiza nada mientras se verifica la sesión
   }
-
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [formData, setFormData] = useState({ username: "", password: "", role: "viewer" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [modalType, setModalType] = useState("") // "inventario", "obra", "orden"
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRoleChange = (value) => {
-    setFormData({ ...formData, role: value })
-  }
+    setFormData({ ...formData, role: value });
+  };
 
   const openCreateModal = () => {
-    setIsEditMode(false)
-    setFormData({ username: "", password: "", role: "viewer" })
-    setIsModalOpen(true)
-  }
+    setIsEditMode(false);
+    setFormData({ username: "", password: "", role: "viewer" });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (user) => {
-    setIsEditMode(true)
-    setSelectedUser(user)
-    setFormData({ username: user.username, password: "", role: user.role })
-    setIsModalOpen(true)
-  }
+    setIsEditMode(true);
+    setSelectedUser(user);
+    setFormData({ username: user.username, password: "", role: user.role });
+    setIsModalOpen(true);
+  };
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (isEditMode) {
-        await updateUsuario(selectedUser.id, formData)
-        toast({ title: "Usuario actualizado", description: "El usuario fue actualizado exitosamente." })
+        await updateUsuario(selectedUser.id, formData);
+        toast({ title: "Usuario actualizado", description: "El usuario fue actualizado exitosamente." });
       } else {
         if (!formData.username || !formData.password) {
-          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" })
-          return
+          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" });
+          return;
         }
-        await createUsuario(formData)
-        toast({ title: "Usuario creado", description: "El usuario fue creado exitosamente." })
+        await createUsuario(formData);
+        toast({ title: "Usuario creado", description: "El usuario fue creado exitosamente." });
       }
-      setIsModalOpen(false)
-      await getUsuarios() // Actualizar lista
+      setIsModalOpen(false);
+      await getUsuarios(); // Actualizar lista
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo guardar el usuario.", variant: "destructive" })
+      toast({ title: "Error", description: "No se pudo guardar el usuario.", variant: "destructive" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
       try {
-        await deleteUsuario(id)
-        toast({ title: "Usuario eliminado", description: "El usuario fue eliminado exitosamente." })
-        await getUsuarios() // Actualizar lista
+        await deleteUsuario(id);
+        toast({ title: "Usuario eliminado", description: "El usuario fue eliminado exitosamente." });
+        await getUsuarios(); // Actualizar lista
       } catch (error) {
-        toast({ title: "Error", description: "No se pudo eliminar el usuario.", variant: "destructive" })
+        toast({ title: "Error", description: "No se pudo eliminar el usuario.", variant: "destructive" });
       }
     }
-  }
+  };
 
   const openModal = (type) => {
-    setModalType(type)
-    setFormData({})
-    setIsModalOpen(true)
-  }
+    setModalType(type);
+    setFormData({});
+    setIsModalOpen(true);
+  };
 
   const handleSaveModal = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (modalType === "inventario") {
         if (!formData.nombre || !formData.stock) {
-          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" })
-          return
+          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" });
+          return;
         }
-        await createItemInventario({ nombre: formData.nombre, stock: parseInt(formData.stock, 10) })
-        toast({ title: "Perfil agregado", description: "El perfil fue agregado exitosamente." })
+        await createItemInventario({ nombre: formData.nombre, stock: parseInt(formData.stock, 10) });
+        toast({ title: "Perfil agregado", description: "El perfil fue agregado exitosamente." });
       } else if (modalType === "obra") {
         if (!formData.nombre || !formData.direccion) {
-          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" })
-          return
+          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" });
+          return;
         }
-        await createObra({ nombre: formData.nombre, direccion: formData.direccion })
-        toast({ title: "Obra creada", description: "La obra fue creada exitosamente." })
+        await createObra({ nombre: formData.nombre, direccion: formData.direccion });
+        toast({ title: "Obra creada", description: "La obra fue creada exitosamente." });
       } else if (modalType === "orden") {
         if (!formData.nombre || !formData.total) {
-          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" })
-          return
+          toast({ title: "Error", description: "Todos los campos son obligatorios.", variant: "destructive" });
+          return;
         }
-        await createOrden({ nombre: formData.nombre, total: parseFloat(formData.total) })
-        toast({ title: "Orden creada", description: "La orden fue creada exitosamente." })
+        await createOrden({ nombre: formData.nombre, total: parseFloat(formData.total) });
+        toast({ title: "Orden creada", description: "La orden fue creada exitosamente." });
       }
-      setIsModalOpen(false)
+      setIsModalOpen(false);
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo guardar.", variant: "destructive" })
+      toast({ title: "Error", description: "No se pudo guardar.", variant: "destructive" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Calculate statistics
-  const totalInventory = inventory.reduce((acc, item) => acc + item.quantity, 0)
-  const pendingOrders = orders.filter((order) => order.status === "Pendiente" || order.status === "En proceso").length
-  const activeProjects = projects.filter((project) => project.status === "Activo").length
+  const totalInventory = inventory.reduce((acc, item) => acc + item.quantity, 0);
+  const pendingOrders = orders.filter((order) => order.status === "Pendiente" || order.status === "En proceso").length;
+  const activeProjects = projects.filter((project) => project.status === "Activo").length;
 
   return (
     <div className="space-y-6">
@@ -358,6 +370,6 @@ export default async function DashboardPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
