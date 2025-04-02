@@ -1,0 +1,217 @@
+// Mock users
+export const users = [
+  {
+    id: "1",
+    name: "Administrador",
+    username: "admin",
+    password: "mps.1887",
+    role: "admin",
+  },
+  {
+    id: "2",
+    name: "Visualizador",
+    username: "viewer",
+    password: "viewer123",
+    role: "viewer",
+  },
+]
+
+// Mock inventory data
+export const inventory = [
+  {
+    id: "1",
+    code: "PVC-001",
+    name: "Perfil Marco",
+    category: "Marcos",
+    quantity: 120,
+    minQuantity: 50,
+    unit: "unidades",
+    location: "Almacén A",
+    supplyLevel: "A",
+    lastUpdated: "2023-10-15",
+  },
+  {
+    id: "2",
+    code: "PVC-002",
+    name: "Perfil Hoja",
+    category: "Hojas",
+    quantity: 85,
+    minQuantity: 100,
+    unit: "unidades",
+    location: "Almacén B",
+    supplyLevel: "B",
+    lastUpdated: "2023-10-12",
+  },
+  {
+    id: "3",
+    code: "PVC-003",
+    name: "Perfil Junquillo",
+    category: "Accesorios",
+    quantity: 200,
+    minQuantity: 150,
+    unit: "metros",
+    location: "Almacén A",
+    supplyLevel: "A",
+    lastUpdated: "2023-10-10",
+  },
+  {
+    id: "4",
+    code: "PVC-004",
+    name: "Perfil Refuerzo",
+    category: "Refuerzos",
+    quantity: 150,
+    minQuantity: 200,
+    unit: "metros",
+    location: "Almacén C",
+    supplyLevel: "C",
+    lastUpdated: "2023-10-08",
+  },
+  {
+    id: "5",
+    code: "PVC-005",
+    name: "Perfil Travesaño",
+    category: "Travesaños",
+    quantity: 75,
+    minQuantity: 80,
+    unit: "unidades",
+    location: "Almacén B",
+    supplyLevel: "B",
+    lastUpdated: "2023-10-05",
+  },
+]
+
+// Mock orders data
+export const orders = [
+  {
+    id: "1",
+    orderNumber: "ORD-2023-001",
+    client: "Constructora ABC",
+    project: "Edificio Residencial Norte",
+    status: "Pendiente",
+    items: [
+      { id: "1", productId: "1", quantity: 20 },
+      { id: "2", productId: "3", quantity: 50 },
+    ],
+    createdAt: "2023-10-10",
+    deliveryDate: "2023-10-20",
+    total: 15000,
+  },
+  {
+    id: "2",
+    orderNumber: "ORD-2023-002",
+    client: "Vidriería XYZ",
+    project: "Complejo Oficinas Centro",
+    status: "En proceso",
+    items: [
+      { id: "1", productId: "2", quantity: 15 },
+      { id: "2", productId: "4", quantity: 30 },
+    ],
+    createdAt: "2023-10-08",
+    deliveryDate: "2023-10-18",
+    total: 12500,
+  },
+  {
+    id: "3",
+    orderNumber: "ORD-2023-003",
+    client: "Carpintería PVC Sur",
+    project: "Hotel Costanera",
+    status: "Completada",
+    items: [
+      { id: "1", productId: "1", quantity: 10 },
+      { id: "2", productId: "2", quantity: 10 },
+      { id: "3", productId: "5", quantity: 5 },
+    ],
+    createdAt: "2023-09-25",
+    deliveryDate: "2023-10-05",
+    total: 8750,
+  },
+]
+
+// Mock projects data
+export const projects = [
+  {
+    id: "1",
+    name: "Edificio Residencial Norte",
+    client: "Constructora ABC",
+    location: "Av. Principal 123",
+    status: "Activo",
+    startDate: "2023-09-01",
+    endDate: "2023-12-15",
+    progress: 35,
+  },
+  {
+    id: "2",
+    name: "Complejo Oficinas Centro",
+    client: "Vidriería XYZ",
+    location: "Calle Comercial 456",
+    status: "Activo",
+    startDate: "2023-08-15",
+    endDate: "2023-11-30",
+    progress: 60,
+  },
+  {
+    id: "3",
+    name: "Hotel Costanera",
+    client: "Carpintería PVC Sur",
+    location: "Av. Costanera 789",
+    status: "Completado",
+    startDate: "2023-07-01",
+    endDate: "2023-10-01",
+    progress: 100,
+  },
+  {
+    id: "4",
+    name: "Centro Comercial Este",
+    client: "Desarrolladora Urbana",
+    location: "Ruta 5 Km 15",
+    status: "Planificación",
+    startDate: "2023-11-01",
+    endDate: "2024-05-30",
+    progress: 0,
+  },
+]
+
+// Mock audit logs
+export const auditLogs = [
+  {
+    id: "1",
+    action: "Inicio de sesión",
+    user: "admin",
+    module: "Autenticación",
+    timestamp: "2023-10-15T08:30:00",
+    details: "Inicio de sesión exitoso",
+  },
+  {
+    id: "2",
+    action: "Actualización de inventario",
+    user: "admin",
+    module: "Inventario",
+    timestamp: "2023-10-15T09:15:00",
+    details: "Actualización de cantidad de producto PVC-001",
+  },
+  {
+    id: "3",
+    action: "Creación de orden",
+    user: "admin",
+    module: "Órdenes",
+    timestamp: "2023-10-15T10:45:00",
+    details: "Creación de orden ORD-2023-004",
+  },
+  {
+    id: "4",
+    action: "Inicio de sesión",
+    user: "viewer",
+    module: "Autenticación",
+    timestamp: "2023-10-15T11:20:00",
+    details: "Inicio de sesión exitoso",
+  },
+  {
+    id: "5",
+    action: "Visualización de inventario",
+    user: "viewer",
+    module: "Inventario",
+    timestamp: "2023-10-15T11:25:00",
+    details: "Visualización de listado de inventario",
+  },
+]
+

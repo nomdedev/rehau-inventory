@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver" // Cambia a sqlserver
+  url      = env("DATABASE_URL")
+}
+
+// Modelos de ejemplo
+model Usuario {
+  id    String @id @default(uuid())
+  nombre String
+  email String @unique
+}
+
+model Inventario {
+  id           Int     @id @default(autoincrement())
+  codigo       String  @unique @db.VarChar(50)
+  descripcion  String  @db.VarChar(255)
+  largo        Float   @db.Float // Esto es válido para SQL Server
+  stock        Int
+  stockMinimo  Int
+  nivel        String  @db.VarChar(1)
+  ubicacion    String  @db.VarChar(100)
+}
+
+model Orden {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @default(now())
+  proveedor String   @db.VarChar(100)
+  proyecto  String   @db.VarChar(100)
+  estado    String   @db.VarChar(20)
+  total     Float    @db.Float // Esto es válido para SQL Server
+}
+
+model Obra {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(100)
+  cliente   String   @db.VarChar(100)
+  direccion String   @db.VarChar(150)
+  estado    String   @db.VarChar(20)
+  fecha     DateTime
+}
+
+model Movimiento {
+  id         Int      @id @default(autoincrement())
+  tipo       String   @db.VarChar(20)
+  cantidad   Int
+  materialId Int
+  proyectoId Int
+  fecha      DateTime @default(now())
+}
+
+model Auditoria {
+  id       Int      @id @default(autoincrement())
+  usuario  String   @db.VarChar(100)
+  accion   String   @db.VarChar(100)
+  modulo   String   @db.VarChar(50)
+  fecha    DateTime @default(now())
+}
