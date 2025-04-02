@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") // Asegúrate de que DATABASE_URL esté configurado correctamente en el archivo .env
 }
 
 model Usuario {
@@ -13,6 +13,8 @@ model Usuario {
   email     String      @unique
   password  String
   rol       String
+  Orden     Orden[]
+  Auditoria Auditoria[]
 }
 
 model Inventario {
