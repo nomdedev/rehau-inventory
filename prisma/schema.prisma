@@ -13,8 +13,6 @@ model Usuario {
   email     String      @unique
   password  String
   rol       String
-  auditoria Auditoria[]
-  ordenes   Orden[]
 }
 
 model Inventario {

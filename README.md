@@ -1,45 +1,43 @@
-## 🔗 Conexión con Base de Datos (PostgreSQL + Prisma)
+# Rehau Inventory
 
-La aplicación está preparada para conectarse a una base de datos PostgreSQL usando Prisma como ORM.
+## Configuración
 
----
+1. Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido:
+   ```
+   DATABASE_URL="sqlserver://sa:mps1887@localhost:1433/rehau_inventory?encrypt=false&trustServerCertificate=true"
+   ```
 
-### 1. Instalar dependencias
+2. Instala las dependencias:
+   ```
+   npm install
+   ```
 
-```bash
-npm install prisma @prisma/client
-```
+3. Genera el cliente de Prisma:
+   ```
+   npx prisma generate
+   ```
 
-### 2. Configurar la conexión
+4. Ejecuta las migraciones para crear las tablas en la base de datos:
+   ```
+   npx prisma migrate dev --name init
+   ```
 
-Asegúrate de tener un archivo `.env` en la raíz del proyecto con la variable `DATABASE_URL` configurada. Ejemplo:
+## Ejecución
 
-```
-DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/nombre_base_datos
-```
+1. Inicia el servidor de desarrollo:
+   ```
+   npm run dev
+   ```
 
-### 3. Generar el cliente de Prisma
+2. Accede a la aplicación en `http://localhost:3000`.
 
-Ejecuta el siguiente comando para generar el cliente de Prisma:
+## Endpoints
 
-```bash
-npx prisma generate
-```
+- **Usuarios**
+  - `GET /api/usuarios`: Obtener todos los usuarios.
+  - `GET /api/usuarios/[id]`: Obtener un usuario por ID.
+  - `POST /api/usuarios`: Crear un nuevo usuario.
+  - `PUT /api/usuarios/[id]`: Actualizar un usuario.
+  - `DELETE /api/usuarios/[id]`: Eliminar un usuario.
 
-### 4. Migrar el esquema a la base de datos
-
-Aplica las migraciones a la base de datos con el siguiente comando:
-
-```bash
-npx prisma migrate dev --name init
-```
-
-### 5. Verificar la conexión
-
-Puedes verificar la conexión a la base de datos ejecutando el siguiente comando:
-
-```bash
-npx prisma db pull
-```
-
-Esto sincronizará el esquema de la base de datos con el archivo `schema.prisma`.
+- **Inventario**, **Obras**, **Órdenes**, etc.: Similar a los endpoints de usuarios.
