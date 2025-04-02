@@ -1,0 +1,5 @@
+{
+    "dataworkspace.excludedProjects": [
+        "inventario.pvc/inventario.pvc.sqlproj"
+    ]
+}
